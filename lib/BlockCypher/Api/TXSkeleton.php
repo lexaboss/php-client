@@ -91,6 +91,12 @@ class TXSkeleton extends BlockCypherResourceModel
             $privateKeys = array($privateKeys);
         }
 
+        // Generating ETH signatures
+        if ($coinSymbol == 'eth') {
+            $this->generateEthSignatures($privateKeys);
+            return $this;
+        }
+
         // Create PrivateKey objects from plain hex private keys (public keys compressed)
         $privateKeyCompressedList = PrivateKeyList::fromHexPrivateKeyArray($privateKeys, $coinSymbol, true);
 
@@ -102,6 +108,37 @@ class TXSkeleton extends BlockCypherResourceModel
         $this->generateSignatures($privateKeyCompressedList, $privateKeyUncompressedList, $coinSymbol);
 
         return $this;
+    }
+
+    /**
+     * @param $privateKeyList
+     * @throws BlockCypherSignatureException
+     */
+    private function generateEthSignatures($privateKeyList)
+    {
+
+        $signatures = array();
+        $tosignIndex = 0;
+
+        foreach ($this->getTxInputs() as $txInput) {
+
+            // Addresses can be network addresses
+            $txInputAddresses = $txInput->getAddresses();
+
+            foreach ($txInputAddresses as $inputAddress) {
+
+                if(!isset($privateKeyList[$tosignIndex])) {
+                    throw new BlockCypherSignatureException(sprintf("No signature found for %s input.", $inputAddress));
+                }
+                $privateKey = $privateKeyList[$tosignIndex];
+                $signatures[] = Signer::sign($this->tosign[$tosignIndex], $privateKey);
+            }
+
+            $tosignIndex++;
+        }
+
+        $this->signatures = $signatures;
+        $this->pubkeys = [];
     }
 
     /**
