@@ -50,6 +50,9 @@ class CoinSymbolNetworkMapping
                     ->setHDPrivByte('04358394')
                     ->setNetMagicBytes('d9b4bef9');
                 break;
+            case 'eth':
+                $network = null;
+                break;
             default:
                 throw new \Exception("Unsupported coin symbol: $coinSymbol by php-client");
         }
