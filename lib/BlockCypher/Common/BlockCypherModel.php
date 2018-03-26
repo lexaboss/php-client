@@ -287,7 +287,22 @@ class BlockCypherModel
 
         $options = $options | 2 | 64; // $options | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES;
 
-        return JsonConverter::encode($this->toArray(), $options);
+        return self::bigIntConverter(JsonConverter::encode($this->toArray(), $options));
+    }
+
+    /**
+     * Handling overflow PHP_MAX_INT due to Wei
+     * @param string $json
+     * @return string
+     */
+    public static function bigIntConverter(string $json)
+    {
+        return preg_replace_callback('/(([0-9])*\.?([0-9])+([eE][-+]([0-9])+))+/', function($found){
+            $number = $found[0] ?? null;
+            return is_numeric($number) && $number > (float) PHP_MAX_INT
+                ? number_format($number, 0, '.', '')
+                : $number;
+        }, $json);
     }
 
     /**
