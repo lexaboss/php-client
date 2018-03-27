@@ -291,7 +291,7 @@ class BlockCypherModel
     }
 
     /**
-     * Handling overflow PHP_MAX_INT due to Wei
+     * Handling overflow PHP_INT_MAX due to Wei
      * @param string $json
      * @return string
      */
@@ -299,7 +299,7 @@ class BlockCypherModel
     {
         return preg_replace_callback('/(([0-9])*\.?([0-9])+([eE][-+]([0-9])+))+/', function($found){
             $number = $found[0] ?? null;
-            return is_numeric($number) && $number > (float) PHP_MAX_INT
+            return is_numeric($number) && $number > (float) PHP_INT_MAX
                 ? number_format($number, 0, '.', '')
                 : $number;
         }, $json);
